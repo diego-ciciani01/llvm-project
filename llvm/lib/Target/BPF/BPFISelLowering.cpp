@@ -78,7 +78,7 @@ BPFTargetLowering::BPFTargetLowering(const TargetMachine &TM,
   setOperationAction(ISD::BR_CC, MVT::i64, Custom);
   setOperationAction(ISD::BR_JT, MVT::Other, Expand);
   setOperationAction(ISD::BRCOND, MVT::Other, Expand);
-
+  setOperationAction(ISD::READCYCLECOUNTER, MVT::i64, Legal);
   if (!STI.hasGotox())
     setOperationAction(ISD::BRIND, MVT::Other, Expand);
 

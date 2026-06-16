@@ -357,6 +357,28 @@ class ALU_RR<BPFOpClass Class, BPFArithOp Opc, int off,
   let BPFClass = Class;
 }
 
+// rdtsc custom istruction
+// opcode : BPF_ALU64 | BPF_TIME | BPF_K = 0xF7
+class TSC_RR<bits<4> Opc, BPFOpClass Class,
+             dag outs, dag ins, string asmstr, list<dag> pattern>
+    : TYPE_ALU_JMP<Opc, BPF_K.Value, outs, ins, asmstr, pattern> {
+  bits<4> dst;
+
+  let Inst{55-52} = 0;   // not used
+  let Inst{51-48} = dst;
+  let Inst{47-32} = 0;   // not used
+  let Inst{31-0}  = 0;   // not used
+  let BPFClass = Class;
+}
+
+let hasSideEffects = 1 in
+def TSC_rd : TSC_RR<0xf, BPF_ALU64,
+                    (outs GPR:$dst), (ins),
+                    "$dst = rdtsc", []>;
+
+def : Pat<(i64 (readcyclecounter)), (TSC_rd)>;
+
+
 multiclass ALU<BPFArithOp Opc, int off, string OpcodeStr, SDNode OpNode> {
   def _rr : ALU_RR<BPF_ALU64, Opc, off,
                    (outs GPR:$dst),
@@ -409,6 +431,7 @@ class NEG_RR<BPFOpClass Class, BPFArithOp Opc,
   let Inst{51-48} = dst;
   let BPFClass = Class;
 }
+
 
 let Constraints = "$dst = $src", isAsCheapAsAMove = 1 in {
   def NEG_64: NEG_RR<BPF_ALU64, BPF_NEG, (outs GPR:$dst), (ins GPR:$src),
