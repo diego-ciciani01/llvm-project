@@ -506,6 +506,76 @@ let Predicates = [BPFHasMovsx] in {
 }
 }
 
+// base format fo SIMD
+class BPFSIMDInst<bits<32> subop, dag outs, dag ins,
+   string asmstr, list<dag> pattern>
+   : InstBPF<outs, ins, asmstr, pattern> {
+
+  bits<4> dst;
+  bits<4> src;
+  bits<16> offset;
+
+  let Inst{63-56} = 0xe7;           // fixed opcode
+  let Inst{55-52} = src;
+  let Inst{51-48} = dst;
+  let Inst{47-32} = offset;
+  let Inst{31-0}  = subop;          // sub opcode for the imm field
+
+  let BPFClass = 7;                 // BPF_ALU64 = 0x07
+}
+
+//VPADDD: ZMM_dst = ZMM_dst + ZMM_src
+//  encoding: 0xe7 | dst | src | off = 0 | imm = 1
+def SIMD_ADD : BPFSIMDInst<1,
+    (outs ZMMRC:$dst),
+    (ins ZMMRC:$src1, ZMMRC:$src2),
+    "simd_add\t$dst, $src1, $src2",
+    [(set v16i32:$dst,
+          (int_bpf_simd_add v16i32:$src1, v16i32:$src2))]> {
+  let offset = 0;
+  // dst and src1 must be the same register,(tied operand)
+  //because of the ecoding eBPF has just dst and src, the JIT do: VPADDD ZMM_dst, ZMM_dst, ZMM_src
+  let Constraints = "$dst = $src1";
+}
+
+// VPXORD: ZMM_dst = ZMM_dst ^ ZMM_src
+// Encoding: 0xe7 | dst | src | off=0 | imm=4
+def SIMD_XOR : BPFSIMDInst<4,
+    (outs ZMMRC:$dst),
+    (ins ZMMRC:$src1, ZMMRC:$src2),
+    "simd_xor\t$dst, $src1, $src2",
+    [(set v16i32:$dst,
+          (int_bpf_simd_xor v16i32:$src1, v16i32:$src2))]> {
+  let offset = 0;
+  let Constraints = "$dst = $src1";
+}
+
+// --- (LOAD / STORE) ---
+
+// VMOVDQU32 load: ZMM_dst = [GPR_src + off]
+// Encoding: 0xe7 | dst_zmm | src_gpr | off | imm=5
+def SIMD_LOAD : BPFSIMDInst<5,
+    (outs ZMMRC:$dst),
+    (ins GPR:$base, i16imm:$offset),
+    "simd_load\t$dst, [$base + $offset]",
+    [(set v16i32:$dst,
+          (int_bpf_simd_load GPR:$base, i16imm:$offset))]>;
+
+// VMOVDQU32 store: [GPR_dst + off] = ZMM_src
+// Encoding: 0xe7 | dst_gpr | src_zmm | off | imm=6
+def SIMD_STORE : BPFSIMDInst<6,
+    (outs),
+    (ins GPR:$base, ZMMRC:$src, i16imm:$offset),
+    "simd_store\t[$base + $offset], $src",
+    [(int_bpf_simd_store GPR:$base, v16i32:$src, i16imm:$offset)]>;
+
+def : Pat<(int_bpf_simd_load GPR:$base, 0),
+          (SIMD_LOAD GPR:$base, 0)>;
+
+def : Pat<(int_bpf_simd_store GPR:$base, v16i32:$val, 0),
+          (SIMD_STORE GPR:$base, v16i32:$val, 0)>;
+
+
 def ADDR_SPACE_CAST
     : ALU_RR<BPF_ALU64, BPF_MOV, 64,
              (outs GPR:$dst),
