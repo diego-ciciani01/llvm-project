@@ -69,12 +69,17 @@ BPFTargetLowering::BPFTargetLowering(const TargetMachine &TM,
   addRegisterClass(MVT::i64, &BPF::GPRRegClass);
   if (STI.getHasAlu32())
     addRegisterClass(MVT::i32, &BPF::GPR32RegClass);
+  addRegisterClass(MVT::v16i32, &BPF::ZMMRCRegClass);
+
+  for (unsigned Op = 0; Op < ISD::BUILTIN_OP_END; ++Op)
+        setOperationAction(Op, MVT::v16i32, Expand);
 
   // Compute derived properties from the register classes
   computeRegisterProperties(STI.getRegisterInfo());
-
+  setOperationAction(ISD::INTRINSIC_W_CHAIN, MVT::v16i32, Legal);
+  setOperationAction(ISD::INTRINSIC_VOID,    MVT::v16i32, Legal);
+  setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::v16i32, Legal);
   setStackPointerRegisterToSaveRestore(BPF::R11);
-
   setOperationAction(ISD::BR_CC, MVT::i64, Custom);
   setOperationAction(ISD::BR_JT, MVT::Other, Expand);
   setOperationAction(ISD::BRCOND, MVT::Other, Expand);

@@ -77,34 +77,20 @@ let TargetPrefix = "bpf" in {  // All intrinsics start with "llvm.bpf."
                          ImmArg    <ArgIndex<6>>, // inbounds
                         ]>;
 
-def int_bpf_simd_load : ClangBuiltin<"__builtin_bpf_simd_load">,
-    Intrinsic<
-    [llvm_v16i32_ty],
-    [llvm_ptr_ty, llvm_i16_ty],
-    [IntrReadMem, IntrArgMemOnly]
->;
+    def int_bpf_simd_load : ClangBuiltin<"__builtin_bpf_simd_load">,
+        Intrinsic<[llvm_v16i32_ty], [llvm_ptr_ty],
+                  [IntrReadMem, IntrArgMemOnly]>;
 
-// STORE: write 64 byte from one zmm register to memory
-def int_bpf_simd_store : ClangBuiltin<"__builtin_bpf_simd_store">,
-    Intrinsic<
-        [],                                       // void
-        [llvm_ptr_ty, llvm_v16i32_ty, llvm_i16_ty], // ptr, val, offset
-        [IntrWriteMem, IntrArgMemOnly]
- >;
+    def int_bpf_simd_store : ClangBuiltin<"__builtin_bpf_simd_store">,
+        Intrinsic<[], [llvm_ptr_ty, llvm_v16i32_ty],
+                  [IntrWriteMem, IntrArgMemOnly]>;
 
-// ADD: vectorial sum 32 bit on 16 registers
-def int_bpf_simd_add : ClangBuiltin<"__builtin_bpf_simd_add">,
-    Intrinsic<
-        [llvm_v16i32_ty],
-        [llvm_v16i32_ty, llvm_v16i32_ty],
-        [IntrNoMem]
- >;
+    def int_bpf_simd_add : ClangBuiltin<"__builtin_bpf_simd_add">,
+        Intrinsic<[llvm_v16i32_ty], [llvm_v16i32_ty, llvm_v16i32_ty],
+                  [IntrNoMem]>;
 
-// XOR: vectorial xor on 16 registers
-def int_bpf_simd_xor : ClangBuiltin<"__builtin_bpf_simd_xor">,
-	Intrinsic<
-		[llvm_v16i32_ty],
-		[llvm_v16i32_ty, llvm_v16i32_ty],
-		[IntrNoMem]
->;
+    def int_bpf_simd_xor : ClangBuiltin<"__builtin_bpf_simd_xor">,
+        Intrinsic<[llvm_v16i32_ty], [llvm_v16i32_ty, llvm_v16i32_ty],
+                  [IntrNoMem]>;
+
 }

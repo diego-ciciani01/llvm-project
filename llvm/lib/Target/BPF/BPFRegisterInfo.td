@@ -45,44 +45,13 @@ def GPR32 : RegisterClass<"BPF", [i32], 64, (add
 )>;
 
 // Vector registers - AVX 512
-def ZMM0  : BPFReg<"zmm0",  [], []>;
-def ZMM1  : BPFReg<"zmm1",  [], []>;
-def ZMM2  : BPFReg<"zmm2",  [], []>;
-def ZMM3  : BPFReg<"zmm3",  [], []>;
-def ZMM4  : BPFReg<"zmm4",  [], []>;
-def ZMM5  : BPFReg<"zmm5",  [], []>;
-def ZMM6  : BPFReg<"zmm6",  [], []>;
-def ZMM7  : BPFReg<"zmm7",  [], []>;
-def ZMM8  : BPFReg<"zmm8",  [], []>;
-def ZMM9  : BPFReg<"zmm9",  [], []>;
-def ZMM10 : BPFReg<"zmm10", [], []>;
-def ZMM11 : BPFReg<"zmm11", [], []>;
-def ZMM12 : BPFReg<"zmm12", [], []>;
-def ZMM13 : BPFReg<"zmm13", [], []>;
-def ZMM14 : BPFReg<"zmm14", [], []>;
-def ZMM15 : BPFReg<"zmm15", [], []>;
+foreach I = 0-15 in {
+    def ZMM#I : Wi<I, "zmm"#I>, DwarfRegNum<[I]>;
+}
 
-def ZMMRC : RegisterClass<"BPF", [v16i32], 512, (
-    add ZMM0, ZMM1, ZMM2, ZMM3, ZMM4, ZMM5, ZMM6, ZMM7, ZMM8, ZMM9,
-    ZMM10, ZMM11, ZMMM12, ZMM13, ZMM14, ZMMM15)>;
-)
+def ZMMRC : RegisterClass<"BPF", [v16i32], 64,
+    (sequence "ZMM%u", 0, 15)>;
 
-def ZMM0Encoding  : DwarfRegNum<[0]>;
-def ZMM1Encoding  : DwarfRegNum<[1]>;
-def ZMM2Encoding  : DwarfRegNum<[2]>;
-def ZMM3Encoding  : DwarfRegNum<[3]>;
-def ZMM4Encoding  : DwarfRegNum<[4]>;
-def ZMM5Encoding  : DwarfRegNum<[5]>;
-def ZMM6Encoding  : DwarfRegNum<[6]>;
-def ZMM7Encoding  : DwarfRegNum<[7]>;
-def ZMM8Encoding  : DwarfRegNum<[8]>;
-def ZMM9Encoding  : DwarfRegNum<[9]>;
-def ZMM10Encoding : DwarfRegNum<[10]>;
-def ZMM11Encoding : DwarfRegNum<[11]>;
-def ZMM12Encoding : DwarfRegNum<[12]>;
-def ZMM13Encoding : DwarfRegNum<[13]>;
-def ZMM14Encoding : DwarfRegNum<[14]>;
-def ZMM15Encoding : DwarfRegNum<[15]>;
 
 def GPR : RegisterClass<"BPF", [i64], 64, (add
   (sequence "R%u", 1, 9),

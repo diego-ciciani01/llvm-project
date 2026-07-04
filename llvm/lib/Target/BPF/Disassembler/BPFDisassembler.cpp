@@ -111,6 +111,16 @@ static DecodeStatus DecodeGPRRegisterClass(MCInst &Inst, unsigned RegNo,
   return MCDisassembler::Success;
 }
 
+static DecodeStatus DecodeZMMRCRegisterClass(MCInst &Inst, unsigned RegNo,
+                                              uint64_t /*Address*/,
+                                              const MCDisassembler * /*Decoder*/) {
+  if (RegNo > 15)
+    return MCDisassembler::Fail;
+
+  Inst.addOperand(MCOperand::createReg(BPF::ZMM0 + RegNo));
+  return MCDisassembler::Success;
+}
+
 static const unsigned GPR32DecoderTable[] = {
     BPF::W0, BPF::W1, BPF::W2, BPF::W3, BPF::W4,  BPF::W5,
     BPF::W6, BPF::W7, BPF::W8, BPF::W9, BPF::W10, BPF::W11};
