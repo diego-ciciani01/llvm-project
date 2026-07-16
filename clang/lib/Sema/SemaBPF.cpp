@@ -104,6 +104,17 @@ static bool isValidPreserveEnumValueArg(Expr *Arg) {
 
 bool SemaBPF::CheckBPFBuiltinFunctionCall(unsigned BuiltinID,
                                           CallExpr *TheCall) {
+
+  switch (BuiltinID) {
+  case BPF::BI__builtin_bpf_simd_load:
+  case BPF::BI__builtin_bpf_simd_store:
+  case BPF::BI__builtin_bpf_simd_add:
+  case BPF::BI__builtin_bpf_simd_xor:
+    return false;   // false = nessun errore, prosegui
+  default:
+    break;
+  }
+
   assert((BuiltinID == BPF::BI__builtin_preserve_field_info ||
           BuiltinID == BPF::BI__builtin_btf_type_id ||
           BuiltinID == BPF::BI__builtin_preserve_type_info ||

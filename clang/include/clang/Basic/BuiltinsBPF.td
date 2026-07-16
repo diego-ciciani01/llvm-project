@@ -35,3 +35,27 @@ def PreserveEnumValue : TargetBuiltin {
   let Attributes = [CustomTypeChecking];
   let Prototype = "long int(...)";
 }
+
+def simdLoad : TargetBuiltin {
+  let Spellings = ["__builtin_bpf_simd_load"];
+  let Attributes = [NoThrow];
+  let Prototype = "_Vector<16, int>(void *)";
+}
+
+def simdStore : TargetBuiltin {
+  let Spellings = ["__builtin_bpf_simd_store"];
+  let Attributes = [NoThrow];
+  let Prototype = "void(void *, _Vector<16, int>)";
+}
+
+def simdAdd : TargetBuiltin {
+  let Spellings = ["__builtin_bpf_simd_add"];
+  let Attributes = [NoThrow, Const];
+  let Prototype = "_Vector<16, int>(_Vector<16, int>, _Vector<16, int>)";
+}
+
+def simdXor : TargetBuiltin {
+  let Spellings = ["__builtin_bpf_simd_xor"];
+  let Attributes = [NoThrow, Const];
+  let Prototype = "_Vector<16, int>(_Vector<16, int>, _Vector<16, int>)";
+}
