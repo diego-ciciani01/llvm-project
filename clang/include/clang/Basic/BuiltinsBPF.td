@@ -54,6 +54,12 @@ def simdAdd : TargetBuiltin {
   let Prototype = "_Vector<16, int>(_Vector<16, int>, _Vector<16, int>)";
 }
 
+def simdMul : TargetBuiltin {
+  let Spellings = ["__builtin_bpf_simd_mul"];
+  let Attributes = [NoThrow, Const];
+  let Prototype = "_Vector<16, int>(_Vector<16, int>, _Vector<16, int>)";
+}
+
 def simdXor : TargetBuiltin {
   let Spellings = ["__builtin_bpf_simd_xor"];
   let Attributes = [NoThrow, Const];

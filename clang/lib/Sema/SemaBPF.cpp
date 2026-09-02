@@ -109,6 +109,7 @@ bool SemaBPF::CheckBPFBuiltinFunctionCall(unsigned BuiltinID,
   case BPF::BI__builtin_bpf_simd_load:
   case BPF::BI__builtin_bpf_simd_store:
   case BPF::BI__builtin_bpf_simd_add:
+  case BPF::BI__builtin_bpf_simd_mul:
   case BPF::BI__builtin_bpf_simd_xor:
     return false;   // false = nessun errore, prosegui
   default:

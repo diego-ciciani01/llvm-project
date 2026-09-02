@@ -1468,6 +1468,12 @@ def SIMD_ADD : BPFSIMDInst<1,
           let Constraints = "$dst = $src2";
           }
 
+def SIMD_MUL : BPFSIMDInst<2,
+    (outs ZMMRC:$dst), (ins ZMMRC:$src2, ZMMRC:$src),
+        "simd_mul\t$dst, $src"> {
+          let Constraints = "$dst = $src2";
+          }
+
 def SIMD_XOR : BPFSIMDInst<4,
   (outs ZMMRC:$dst), (ins ZMMRC:$src2, ZMMRC:$src),
       "simd_xor\t$dst, $src"> {
@@ -1496,6 +1502,9 @@ def : Pat<(int_bpf_simd_store GPR:$dst, v16i32:$src),
 
 def : Pat<(int_bpf_simd_add v16i32:$a, v16i32:$b),
           (SIMD_ADD v16i32:$a, v16i32:$b)>;
+
+def : Pat<(int_bpf_simd_mul v16i32:$a, v16i32:$b),
+          (SIMD_MUL v16i32:$a, v16i32:$b)>;
 
 def : Pat<(int_bpf_simd_xor v16i32:$a, v16i32:$b),
         (SIMD_XOR v16i32:$a, v16i32:$b)>;
