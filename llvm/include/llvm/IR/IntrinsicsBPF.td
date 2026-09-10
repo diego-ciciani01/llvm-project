@@ -85,6 +85,13 @@ let TargetPrefix = "bpf" in {  // All intrinsics start with "llvm.bpf."
         Intrinsic<[], [llvm_ptr_ty, llvm_v16i32_ty],
                   [IntrWriteMem, IntrArgMemOnly]>;
 
+    def int_bpf_simd_load64 : ClangBuiltin<"__builtin_bpf_simd_load64">,
+        Intrinsic<[llvm_v8i64_ty], [llvm_ptr_ty], [IntrReadMem, IntrArgMemOnly]>;
+
+    def int_bpf_simd_store64 : ClangBuiltin<"__builtin_bpf_simd_store64">,
+       Intrinsic<[], [llvm_ptr_ty, llvm_v8i64_ty], [IntrWriteMem, IntrArgMemOnly]>;
+	
+
     def int_bpf_simd_add : ClangBuiltin<"__builtin_bpf_simd_add">,
         Intrinsic<[llvm_v16i32_ty], [llvm_v16i32_ty, llvm_v16i32_ty],
                   [IntrNoMem]>;
@@ -94,8 +101,23 @@ let TargetPrefix = "bpf" in {  // All intrinsics start with "llvm.bpf."
                   [IntrNoMem]>;
     
     def int_bpf_simd_mul : ClangBuiltin<"__builtin_bpf_simd_mul">,
-        Intrinsic<[llvm_v16i32_ty], [llvm_v16i32_ty, llvm_v16i32_ty],
+        Intrinsic<[llvm_v8i64_ty], [llvm_v8i64_ty, llvm_v8i64_ty],
                   [IntrNoMem]>;
 
+   def int_bpf_simd_shift : ClangBuiltin<"__builtin_bpf_simd_shift">,
+        Intrinsic<[llvm_v16i32_ty], [llvm_v16i32_ty, llvm_i32_ty],    
+                [IntrNoMem, ImmArg<ArgIndex<1>>]>;
+
+def int_bpf_simd_rol :
+    ClangBuiltin<"__builtin_bpf_simd_rol">,
+    Intrinsic<
+        [llvm_v8i64_ty],
+        [llvm_v8i64_ty, llvm_i32_ty],
+        [IntrNoMem, ImmArg<ArgIndex<1>>]
+    >;
+
+
+    def int_bpf_simd_madd52luq : ClangBuiltin<"__builtin_bpf_simd_madd52luq">,
+	 Intrinsic<[llvm_v8i64_ty], [llvm_v8i64_ty, llvm_v8i64_ty, llvm_v8i64_ty], [IntrNoMem]>;
 
 }

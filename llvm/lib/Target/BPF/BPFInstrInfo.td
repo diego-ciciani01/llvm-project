@@ -1450,14 +1450,49 @@ let usesCustomInserter = 1, isCodeGenOnly = 1 in {
 }
 
 // ======= SIMD AVX-512 Extension ========
+class BPFSIMDInstOff<bits<32> subop, dag outs, dag ins, string asmstr>
+    : InstBPF<outs, ins, asmstr, []> {
+  bits<4> dst;
+  bits<4> src; 
+  bits<16> shift;
+
+  let Inst{63-56} = 0xe7;
+  let Inst{55-52} = src;
+  let Inst{51-48} = dst;
+  let Inst{47-32} = shift;
+  let Inst{31-0}  = subop;
+  let BPFClass = BPF_ALU64;
+}
+
 class BPFSIMDInst<bits<32> subop, dag outs, dag ins, string asmstr>
     : InstBPF<outs, ins, asmstr, []> {
   bits<4> dst;
-  bits<4> src;
+  bits<4> src; 
+
   let Inst{63-56} = 0xe7;
   let Inst{55-52} = src;
   let Inst{51-48} = dst;
   let Inst{47-32} = 0;
+  let Inst{31-0}  = subop;
+  let BPFClass = BPF_ALU64;
+}
+
+class BPFSIMDInstOffReg<bits<32> subop, dag outs, dag ins,
+                        string asmstr>
+    : InstBPF<outs, ins, asmstr, []> {
+  bits<4> dst;
+  bits<4> src;
+  bits<4> offreg;
+
+  let Inst{63-56} = 0xe7;
+  let Inst{55-52} = src;
+  let Inst{51-48} = dst;
+
+  // off[15:4] = 0
+  // off[3:0]  = third SIMD register
+  let Inst{47-36} = 0;
+  let Inst{35-32} = offreg;
+
   let Inst{31-0}  = subop;
   let BPFClass = BPF_ALU64;
 }
@@ -1493,7 +1528,40 @@ def SIMD_STORE : BPFSIMDInst<6,
   let Pattern = [(int_bpf_simd_store GPR:$dst, v16i32:$src)];
 }
 
-// Pattern: intrinsics -> istructions
+def SIMD_SHIFT : BPFSIMDInstOff<3, (outs ZMMRC:$dst),
+                              (ins ZMMRC:$src, i32imm:$shift),
+                              "simd_shift\t$dst, $src, $shift">;
+
+
+
+def SIMD_ROL : BPFSIMDInstOff<7,
+    (outs ZMMRC:$dst),
+    (ins ZMMRC:$src, i32imm:$shift),
+    "simd_rol\t$dst, $src, $shift">;
+
+
+
+def SIMD_MADD52LUQ : BPFSIMDInstOffReg<8,
+    (outs ZMMRC:$dst),
+    (ins ZMMRC:$src2, ZMMRC:$src, ZMMRC:$offreg),
+    "simd_madd52luq\t$dst, $src, $offreg"> {
+      let Constraints = "$dst = $src2";
+}
+
+
+
+
+let GISelShouldIgnore = 1 in
+def : Pat<(int_bpf_simd_rol v8i64:$a, timm:$shift),
+    (SIMD_ROL ZMMRC:$a, i32imm:$shift)>;
+
+
+def : Pat<(int_bpf_simd_load64 GPR:$src), (SIMD_LOAD GPR:$src)>;
+
+def : Pat<(int_bpf_simd_store64 GPR:$dst, v8i64:$src),
+    (SIMD_STORE GPR:$dst, v8i64:$src)>;
+
+
 def : Pat<(int_bpf_simd_load GPR:$src),
           (SIMD_LOAD GPR:$src)>;
 
@@ -1503,10 +1571,21 @@ def : Pat<(int_bpf_simd_store GPR:$dst, v16i32:$src),
 def : Pat<(int_bpf_simd_add v16i32:$a, v16i32:$b),
           (SIMD_ADD v16i32:$a, v16i32:$b)>;
 
-def : Pat<(int_bpf_simd_mul v16i32:$a, v16i32:$b),
-          (SIMD_MUL v16i32:$a, v16i32:$b)>;
+def : Pat<(int_bpf_simd_mul v8i64:$a, v8i64:$b),
+          (SIMD_MUL v8i64:$a, v8i64:$b)>;
 
 def : Pat<(int_bpf_simd_xor v16i32:$a, v16i32:$b),
-        (SIMD_XOR v16i32:$a, v16i32:$b)>;
+          (SIMD_XOR v16i32:$a, v16i32:$b)>;
+
+def : Pat<(int_bpf_simd_shift v16i32:$a, timm:$shift),
+          (SIMD_SHIFT ZMMRC:$a, timm:$shift)>;
 
 
+
+let GISelShouldIgnore = 1 in
+def : Pat<(int_bpf_simd_rol v8i64:$a, (i32 imm:$shift)),  
+  	(SIMD_ROL v8i64:$a, i32imm:$shift)>;
+
+
+def : Pat<(int_bpf_simd_madd52luq v8i64:$acc, v8i64:$a, v8i64:$b),
+          (SIMD_MADD52LUQ v8i64:$acc, v8i64:$a, v8i64:$b)>;

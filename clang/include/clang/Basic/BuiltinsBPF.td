@@ -54,14 +54,57 @@ def simdAdd : TargetBuiltin {
   let Prototype = "_Vector<16, int>(_Vector<16, int>, _Vector<16, int>)";
 }
 
-def simdMul : TargetBuiltin {
-  let Spellings = ["__builtin_bpf_simd_mul"];
-  let Attributes = [NoThrow, Const];
-  let Prototype = "_Vector<16, int>(_Vector<16, int>, _Vector<16, int>)";
-}
-
 def simdXor : TargetBuiltin {
   let Spellings = ["__builtin_bpf_simd_xor"];
   let Attributes = [NoThrow, Const];
   let Prototype = "_Vector<16, int>(_Vector<16, int>, _Vector<16, int>)";
+}
+
+/* 64 bit lanes */
+
+
+def simdMul : TargetBuiltin {
+    let Spellings = ["__builtin_bpf_simd_mul"];
+    let Attributes = [NoThrow, Const];
+    let Prototype = "_Vector<8, unsigned long long int>(_Vector<8, unsigned long long int>, _Vector<8, unsigned long long int>)";
+}
+
+
+
+def simdRol : TargetBuiltin {
+    let Spellings = ["__builtin_bpf_simd_rol"];
+    let Attributes = [NoThrow, Const];
+    let Prototype =  "_Vector<8, unsigned long long int>(_Vector<8, unsigned long long int>, int)";
+}
+
+
+def simdLoad64 : TargetBuiltin {
+    let Spellings = ["__builtin_bpf_simd_load64"];
+    let Attributes = [NoThrow];
+    let Prototype =  "_Vector<8, unsigned long long int>(void *)";
+}
+
+def simdStore64 : TargetBuiltin {
+    let Spellings = ["__builtin_bpf_simd_store64"];
+    let Attributes = [NoThrow];
+    let Prototype = "void(void *, _Vector<8, unsigned long long int>)";
+}
+
+
+
+
+/* ----------------------- SHIFT 32-bit ----------------------- */
+
+def simdShift : TargetBuiltin {
+    let Spellings = ["__builtin_bpf_simd_shift"];
+    let Attributes = [NoThrow, Const];
+    let Prototype = "_Vector<16, int>(_Vector<16, int>, int)";
+}
+
+/* ---------------------- VPMADD52LUQ ------------------------- */
+
+def simdMadd52luq : TargetBuiltin {
+  let Spellings = ["__builtin_bpf_simd_madd52luq"];
+  let Attributes = [NoThrow, Const];
+  let Prototype = "_Vector<8, unsigned long long int>(_Vector<8, unsigned long long int>, _Vector<8, unsigned long long int>, _Vector<8, unsigned long long int>)";
 }

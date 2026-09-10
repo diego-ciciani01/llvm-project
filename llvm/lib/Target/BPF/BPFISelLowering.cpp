@@ -70,7 +70,7 @@ BPFTargetLowering::BPFTargetLowering(const TargetMachine &TM,
   if (STI.getHasAlu32())
     addRegisterClass(MVT::i32, &BPF::GPR32RegClass);
   addRegisterClass(MVT::v16i32, &BPF::ZMMRCRegClass);
-
+  addRegisterClass(MVT::v8i64, &BPF::ZMMRCRegClass);
   for (unsigned Op = 0; Op < ISD::BUILTIN_OP_END; ++Op)
         setOperationAction(Op, MVT::v16i32, Expand);
 

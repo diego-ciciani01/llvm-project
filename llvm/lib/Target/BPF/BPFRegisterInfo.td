@@ -36,6 +36,11 @@ foreach I = 0-11 in {
 }
 
 
+def ZMMRC : RegisterClass<"BPF", [v16i32, v8i64], 64,
+    (sequence "ZMM%u", 0, 15)>;
+
+
+
 // Register classes.
 def GPR32 : RegisterClass<"BPF", [i32], 64, (add
   (sequence "W%u", 1, 9),
@@ -49,11 +54,7 @@ foreach I = 0-15 in {
     def ZMM#I : Wi<I, "zmm"#I>, DwarfRegNum<[I]>;
 }
 
-def ZMMRC : RegisterClass<"BPF", [v16i32], 64,
-    (sequence "ZMM%u", 0, 15)>;
-
-
-def GPR : RegisterClass<"BPF", [i64], 64, (add
+ def GPR : RegisterClass<"BPF", [i64], 64, (add
   (sequence "R%u", 1, 9),
   R0, // Return value
   R11, // Stack Ptr
