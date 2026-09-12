@@ -1577,9 +1577,14 @@ def : Pat<(int_bpf_simd_mul v8i64:$a, v8i64:$b),
 def : Pat<(int_bpf_simd_xor v16i32:$a, v16i32:$b),
           (SIMD_XOR v16i32:$a, v16i32:$b)>;
 
-def : Pat<(int_bpf_simd_shift v16i32:$a, timm:$shift),
-          (SIMD_SHIFT ZMMRC:$a, timm:$shift)>;
 
+def : Pat<(int_bpf_simd_shift v16i32:$a, timm:$shift),
+    (SIMD_SHIFT v16i32:$a, i32imm:$shift)>;
+
+
+let GISelShouldIgnore = 1 in
+def : Pat< (int_bpf_simd_shift64 v8i64:$a, timm:$shift),
+    (SIMD_SHIFT v8i64:$a, i32imm:$shift)>;
 
 
 let GISelShouldIgnore = 1 in
@@ -1589,3 +1594,4 @@ def : Pat<(int_bpf_simd_rol v8i64:$a, (i32 imm:$shift)),
 
 def : Pat<(int_bpf_simd_madd52luq v8i64:$acc, v8i64:$a, v8i64:$b),
           (SIMD_MADD52LUQ v8i64:$acc, v8i64:$a, v8i64:$b)>;
+

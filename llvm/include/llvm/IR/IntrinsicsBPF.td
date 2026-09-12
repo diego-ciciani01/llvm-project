@@ -108,6 +108,14 @@ let TargetPrefix = "bpf" in {  // All intrinsics start with "llvm.bpf."
         Intrinsic<[llvm_v16i32_ty], [llvm_v16i32_ty, llvm_i32_ty],    
                 [IntrNoMem, ImmArg<ArgIndex<1>>]>;
 
+ def int_bpf_simd_shift64 :
+    ClangBuiltin<"__builtin_bpf_simd_shift64">,
+    Intrinsic<[llvm_v8i64_ty],
+              [llvm_v8i64_ty, llvm_i32_ty],
+              [IntrNoMem, ImmArg<ArgIndex<1>>]>;
+
+
+
 def int_bpf_simd_rol :
     ClangBuiltin<"__builtin_bpf_simd_rol">,
     Intrinsic<

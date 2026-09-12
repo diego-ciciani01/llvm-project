@@ -93,12 +93,19 @@ def simdStore64 : TargetBuiltin {
 
 
 
-/* ----------------------- SHIFT 32-bit ----------------------- */
+/* ----------------------- SHIFT ----------------------- */
 
 def simdShift : TargetBuiltin {
     let Spellings = ["__builtin_bpf_simd_shift"];
     let Attributes = [NoThrow, Const];
     let Prototype = "_Vector<16, int>(_Vector<16, int>, int)";
+}
+
+
+def simdShift64 : TargetBuiltin {
+  let Spellings = ["__builtin_bpf_simd_shift64"];
+  let Attributes = [NoThrow, Const];
+  let Prototype =  "_Vector<8, unsigned long long int>(_Vector<8, unsigned long long int>, int)";
 }
 
 /* ---------------------- VPMADD52LUQ ------------------------- */

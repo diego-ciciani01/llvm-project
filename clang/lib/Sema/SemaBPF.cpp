@@ -111,6 +111,7 @@ bool SemaBPF::CheckBPFBuiltinFunctionCall(unsigned BuiltinID,
   case BPF::BI__builtin_bpf_simd_load64:
   case BPF::BI__builtin_bpf_simd_store64:
   case BPF::BI__builtin_bpf_simd_shift:
+  case BPF::BI__builtin_bpf_simd_shift64:
   case BPF::BI__builtin_bpf_simd_add:
   case BPF::BI__builtin_bpf_simd_mul:
   case BPF::BI__builtin_bpf_simd_xor:
