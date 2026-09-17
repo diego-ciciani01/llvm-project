@@ -29,6 +29,12 @@ def PreserveTypeInfo : TargetBuiltin {
   let Prototype = "long unsigned int(...)";
 }
 
+def simdBroadcast32 : TargetBuiltin {
+  let Spellings = ["__builtin_bpf_simd_broadcast32"];
+  let Attributes = [NoThrow, Const];
+  let Prototype = "_Vector<16, int>(int)";
+}
+
 // Preserve enum value
 def PreserveEnumValue : TargetBuiltin {
   let Spellings = ["__builtin_preserve_enum_value"];
@@ -69,6 +75,12 @@ def simdMul : TargetBuiltin {
     let Prototype = "_Vector<8, unsigned long long int>(_Vector<8, unsigned long long int>, _Vector<8, unsigned long long int>)";
 }
 
+
+def simdAdd64 : TargetBuiltin {
+  let Spellings = ["__builtin_bpf_simd_add64"];
+  let Attributes = [NoThrow, Const];
+  let Prototype = "_Vector<8, unsigned long long int>(_Vector<8, unsigned long long int>, _Vector<8, unsigned long long int>)";
+}
 
 
 def simdRol : TargetBuiltin {

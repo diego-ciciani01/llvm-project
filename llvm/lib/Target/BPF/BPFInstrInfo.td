@@ -1549,7 +1549,19 @@ def SIMD_MADD52LUQ : BPFSIMDInstOffReg<8,
 }
 
 
+def SIMD_ADD64 : BPFSIMDInst<9,
+    (outs ZMMRC:$dst),
+    (ins ZMMRC:$src2, ZMMRC:$src),
+    "simd_add64\t$dst, $src"> {
+  let Constraints = "$dst = $src2";
+}
 
+
+def SIMD_BROADCAST32 : BPFSIMDInst<10,
+    (outs ZMMRC:$dst),
+    (ins GPR32:$src),
+    "simd_broadcast32\t$dst, $src">;
+    
 
 let GISelShouldIgnore = 1 in
 def : Pat<(int_bpf_simd_rol v8i64:$a, timm:$shift),
@@ -1570,6 +1582,11 @@ def : Pat<(int_bpf_simd_store GPR:$dst, v16i32:$src),
 
 def : Pat<(int_bpf_simd_add v16i32:$a, v16i32:$b),
           (SIMD_ADD v16i32:$a, v16i32:$b)>;
+
+let GISelShouldIgnore = 1 in
+def : Pat<(int_bpf_simd_add64 v8i64:$a, v8i64:$b),
+          (SIMD_ADD64 v8i64:$a, v8i64:$b)>;
+
 
 def : Pat<(int_bpf_simd_mul v8i64:$a, v8i64:$b),
           (SIMD_MUL v8i64:$a, v8i64:$b)>;
@@ -1595,3 +1612,6 @@ def : Pat<(int_bpf_simd_rol v8i64:$a, (i32 imm:$shift)),
 def : Pat<(int_bpf_simd_madd52luq v8i64:$acc, v8i64:$a, v8i64:$b),
           (SIMD_MADD52LUQ v8i64:$acc, v8i64:$a, v8i64:$b)>;
 
+let GISelShouldIgnore = 1 in
+def : Pat<    (int_bpf_simd_broadcast32 i32:$src),
+    (SIMD_BROADCAST32 GPR32:$src)>;
