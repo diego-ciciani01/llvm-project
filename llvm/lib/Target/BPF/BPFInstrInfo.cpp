@@ -29,19 +29,35 @@ using namespace llvm;
 BPFInstrInfo::BPFInstrInfo(const BPFSubtarget &STI)
     : BPFGenInstrInfo(STI, RI, BPF::ADJCALLSTACKDOWN, BPF::ADJCALLSTACKUP) {}
 
-void BPFInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
-                               MachineBasicBlock::iterator I,
-                               const DebugLoc &DL, Register DestReg,
-                               Register SrcReg, bool KillSrc,
-                               bool RenamableDest, bool RenamableSrc) const {
-  if (BPF::GPRRegClass.contains(DestReg, SrcReg))
+void BPFInstrInfo::copyPhysReg(
+    MachineBasicBlock &MBB,
+    MachineBasicBlock::iterator I,
+    const DebugLoc &DL,
+    Register DestReg,
+    Register SrcReg,
+    bool KillSrc,
+    bool RenamableDest,
+    bool RenamableSrc) const {
+
+  if (BPF::ZMMRCRegClass.contains(DestReg, SrcReg)) {
+    BuildMI(MBB, I, DL, get(BPF::SIMD_MOV), DestReg)
+        .addReg(SrcReg, getKillRegState(KillSrc));
+    return;
+  }
+
+  if (BPF::GPRRegClass.contains(DestReg, SrcReg)) {
     BuildMI(MBB, I, DL, get(BPF::MOV_rr), DestReg)
         .addReg(SrcReg, getKillRegState(KillSrc));
-  else if (BPF::GPR32RegClass.contains(DestReg, SrcReg))
+    return;
+  }
+
+  if (BPF::GPR32RegClass.contains(DestReg, SrcReg)) {
     BuildMI(MBB, I, DL, get(BPF::MOV_rr_32), DestReg)
         .addReg(SrcReg, getKillRegState(KillSrc));
-  else
-    llvm_unreachable("Impossible reg-to-reg copy");
+    return;
+  }
+
+  llvm_unreachable("Impossible reg-to-reg copy");
 }
 
 void BPFInstrInfo::expandMEMCPY(MachineBasicBlock::iterator MI) const {

@@ -1477,6 +1477,40 @@ class BPFSIMDInst<bits<32> subop, dag outs, dag ins, string asmstr>
   let BPFClass = BPF_ALU64;
 }
 
+class BPFSIMD3Inst<bits<32> subop,
+                   dag outs,
+                   dag ins,
+                   string asmstr>
+    : InstBPF<outs, ins, asmstr, []> {
+
+  bits<4> dst;
+  bits<4> src1;
+  bits<4> src2;
+
+  /*
+   * SIMD three-address encoding:
+   *
+   *   Inst{63-56} = 0xe7       opcode
+   *   Inst{55-52} = src1       src_reg
+   *   Inst{51-48} = dst        dst_reg
+   *   Inst{47-36} = 0          off[15:4]
+   *   Inst{35-32} = src2       off[3:0]
+   *   Inst{31-0}  = subop      imm
+   */
+
+  let Inst{63-56} = 0xe7;
+
+  let Inst{55-52} = src1;
+  let Inst{51-48} = dst;
+
+  let Inst{47-36} = 0;
+  let Inst{35-32} = src2;
+
+  let Inst{31-0} = subop;
+
+  let BPFClass = BPF_ALU64;
+}
+
 class BPFSIMDInstOffReg<bits<32> subop, dag outs, dag ins,
                         string asmstr>
     : InstBPF<outs, ins, asmstr, []> {
@@ -1496,6 +1530,13 @@ class BPFSIMDInstOffReg<bits<32> subop, dag outs, dag ins,
   let Inst{31-0}  = subop;
   let BPFClass = BPF_ALU64;
 }
+
+
+def SIMD_MUL3 : BPFSIMD3Inst<12,
+    (outs ZMMRC:$dst),
+    (ins ZMMRC:$src1, ZMMRC:$src2),
+    "simd_mul3\t$dst, $src1, $src2">;
+    
 
 def SIMD_ADD : BPFSIMDInst<1,
     (outs ZMMRC:$dst), (ins ZMMRC:$src2, ZMMRC:$src),
@@ -1539,7 +1580,11 @@ def SIMD_ROL : BPFSIMDInstOff<7,
     (ins ZMMRC:$src, i32imm:$shift),
     "simd_rol\t$dst, $src, $shift">;
 
-
+def SIMD_MOV : BPFSIMDInst<11,
+    (outs ZMMRC:$dst),
+    (ins ZMMRC:$src),
+    "simd_mov\t$dst, $src">;
+    
 
 def SIMD_MADD52LUQ : BPFSIMDInstOffReg<8,
     (outs ZMMRC:$dst),
@@ -1587,9 +1632,8 @@ let GISelShouldIgnore = 1 in
 def : Pat<(int_bpf_simd_add64 v8i64:$a, v8i64:$b),
           (SIMD_ADD64 v8i64:$a, v8i64:$b)>;
 
-
 def : Pat<(int_bpf_simd_mul v8i64:$a, v8i64:$b),
-          (SIMD_MUL v8i64:$a, v8i64:$b)>;
+          (SIMD_MUL3 v8i64:$a, v8i64:$b)>;
 
 def : Pat<(int_bpf_simd_xor v16i32:$a, v16i32:$b),
           (SIMD_XOR v16i32:$a, v16i32:$b)>;
