@@ -1453,7 +1453,7 @@ let usesCustomInserter = 1, isCodeGenOnly = 1 in {
 class BPFSIMDInstOff<bits<32> subop, dag outs, dag ins, string asmstr>
     : InstBPF<outs, ins, asmstr, []> {
   bits<4> dst;
-  bits<4> src; 
+  bits<4> src;
   bits<16> shift;
 
   let Inst{63-56} = 0xe7;
@@ -1467,7 +1467,7 @@ class BPFSIMDInstOff<bits<32> subop, dag outs, dag ins, string asmstr>
 class BPFSIMDInst<bits<32> subop, dag outs, dag ins, string asmstr>
     : InstBPF<outs, ins, asmstr, []> {
   bits<4> dst;
-  bits<4> src; 
+  bits<4> src;
 
   let Inst{63-56} = 0xe7;
   let Inst{55-52} = src;
@@ -1536,7 +1536,7 @@ def SIMD_MUL3 : BPFSIMD3Inst<12,
     (outs ZMMRC:$dst),
     (ins ZMMRC:$src1, ZMMRC:$src2),
     "simd_mul3\t$dst, $src1, $src2">;
-    
+
 
 def SIMD_ADD : BPFSIMDInst<1,
     (outs ZMMRC:$dst), (ins ZMMRC:$src2, ZMMRC:$src),
@@ -1555,6 +1555,12 @@ def SIMD_XOR : BPFSIMDInst<4,
       "simd_xor\t$dst, $src"> {
         let Constraints = "$dst = $src2";
         }
+
+def SIMD_AND : BPFSIMDInst<13,
+  (outs ZMMRC:$dst), (ins ZMMRC:$src2, ZMMRC:$src),
+      "simd_and\t$dst, $src"> {
+        let Constraints = "$dst = $src2";
+}
 
 def SIMD_LOAD : BPFSIMDInst<5,
     (outs ZMMRC:$dst), (ins GPR:$src),
@@ -1584,7 +1590,7 @@ def SIMD_MOV : BPFSIMDInst<11,
     (outs ZMMRC:$dst),
     (ins ZMMRC:$src),
     "simd_mov\t$dst, $src">;
-    
+
 
 def SIMD_MADD52LUQ : BPFSIMDInstOffReg<8,
     (outs ZMMRC:$dst),
@@ -1606,7 +1612,7 @@ def SIMD_BROADCAST32 : BPFSIMDInst<10,
     (outs ZMMRC:$dst),
     (ins GPR32:$src),
     "simd_broadcast32\t$dst, $src">;
-    
+
 
 let GISelShouldIgnore = 1 in
 def : Pat<(int_bpf_simd_rol v8i64:$a, timm:$shift),
@@ -1638,6 +1644,8 @@ def : Pat<(int_bpf_simd_mul v8i64:$a, v8i64:$b),
 def : Pat<(int_bpf_simd_xor v16i32:$a, v16i32:$b),
           (SIMD_XOR v16i32:$a, v16i32:$b)>;
 
+def : Pat<(int_bpf_simd_and v16i32:$a, v16i32:$b),
+          (SIMD_AND v16i32:$a, v16i32:$b)>;
 
 def : Pat<(int_bpf_simd_shift v16i32:$a, timm:$shift),
     (SIMD_SHIFT v16i32:$a, i32imm:$shift)>;
@@ -1649,7 +1657,7 @@ def : Pat< (int_bpf_simd_shift64 v8i64:$a, timm:$shift),
 
 
 let GISelShouldIgnore = 1 in
-def : Pat<(int_bpf_simd_rol v8i64:$a, (i32 imm:$shift)),  
+def : Pat<(int_bpf_simd_rol v8i64:$a, (i32 imm:$shift)),
   	(SIMD_ROL v8i64:$a, i32imm:$shift)>;
 
 

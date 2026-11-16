@@ -66,6 +66,12 @@ def simdXor : TargetBuiltin {
   let Prototype = "_Vector<16, int>(_Vector<16, int>, _Vector<16, int>)";
 }
 
+def simdAnd : TargetBuiltin {
+   let Spellings = ["__builtin_bpf_simd_and"];
+   let Attributes = [NoThrow, Const];
+   let Prototype = "_Vector<16, int>(_Vector<16, int>, _Vector<16, int>)";
+}
+
 /* 64 bit lanes */
 
 
@@ -75,20 +81,17 @@ def simdMul : TargetBuiltin {
     let Prototype = "_Vector<8, unsigned long long int>(_Vector<8, unsigned long long int>, _Vector<8, unsigned long long int>)";
 }
 
-
 def simdAdd64 : TargetBuiltin {
   let Spellings = ["__builtin_bpf_simd_add64"];
   let Attributes = [NoThrow, Const];
   let Prototype = "_Vector<8, unsigned long long int>(_Vector<8, unsigned long long int>, _Vector<8, unsigned long long int>)";
 }
 
-
 def simdRol : TargetBuiltin {
     let Spellings = ["__builtin_bpf_simd_rol"];
     let Attributes = [NoThrow, Const];
     let Prototype =  "_Vector<8, unsigned long long int>(_Vector<8, unsigned long long int>, int)";
 }
-
 
 def simdLoad64 : TargetBuiltin {
     let Spellings = ["__builtin_bpf_simd_load64"];
