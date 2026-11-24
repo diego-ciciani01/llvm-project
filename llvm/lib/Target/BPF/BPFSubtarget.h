@@ -104,6 +104,12 @@ public:
 
   bool isLittleEndian() const { return IsLittleEndian; }
 
+  // Experimental: assign a latency to SIMD MUL data dependencies, without
+  // changing the scheduling of scalar eBPF operations. Disabled by default.
+  void adjustSchedDependency(SUnit *Def, int DefOpIdx, SUnit *Use,
+                             int UseOpIdx, SDep &Dep,
+                             const TargetSchedModel *SchedModel) const override;
+
   const BPFInstrInfo *getInstrInfo() const override { return &InstrInfo; }
   const BPFFrameLowering *getFrameLowering() const override {
     return &FrameLowering;

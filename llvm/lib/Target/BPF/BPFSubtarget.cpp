@@ -16,10 +16,28 @@
 #include "GISel/BPFCallLowering.h"
 #include "GISel/BPFLegalizerInfo.h"
 #include "GISel/BPFRegisterBankInfo.h"
+#include "llvm/CodeGen/MachineInstr.h"
+#include "llvm/CodeGen/ScheduleDAG.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/Support/raw_ostream.h"
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/TargetParser/Host.h"
+#include "llvm/CodeGen/SelectionDAGNodes.h"
 
 using namespace llvm;
+
+// The generic BPF CPU has no SIMD instruction latency model. This is a
+// deliberately narrow, opt-in probe to test whether prioritizing long
+// SIMD MUL def-use chains changes the machine schedule. Zero means off.
+static cl::opt<unsigned> BPFSIMDMulDepLatency(
+    "bpf-simd-mul-dep-latency", cl::Hidden, cl::init(0),
+    cl::desc("Experimental latency in cycles for SIMD multiply data edges "
+             "in the BPF machine scheduler (0 disables)"));
+
+// Optional logging to prove that SIMD data dependencies are intercepted.
+static cl::opt<bool> BPFSIMDMulDepTrace(
+    "bpf-simd-mul-dep-trace", cl::Hidden, cl::init(false),
+    cl::desc("Print each SIMD multiply dependency latency adjustment"));
 
 #define DEBUG_TYPE "bpf-subtarget"
 
@@ -45,6 +63,65 @@ static cl::opt<bool> Disable_load_acq_store_rel(
     cl::desc("Disable load-acquire and store-release insns"));
 static cl::opt<bool> Disable_gotox("disable-gotox", cl::Hidden, cl::init(false),
                                    cl::desc("Disable gotox insn"));
+
+void BPFSubtarget::adjustSchedDependency(
+    SUnit *Def, int /*DefOpIdx*/, SUnit * /*Use*/, int /*UseOpIdx*/,
+    SDep &Dep, const TargetSchedModel * /*SchedModel*/) const {
+
+    if (BPFSIMDMulDepTrace) {
+  errs() << "BPF_SCHED_HOOK";
+
+  if (Def) {
+    if (Def->isInstr() && Def->getInstr()) {
+      errs() << " type=MachineInstr"
+             << " opcode=" << Def->getInstr()->getOpcode();
+    } else if (!Def->isInstr() && Def->getNode()) {
+      const SDNode *N = Def->getNode();
+
+      errs() << " type=SDNode"
+             << " is_machine=" << N->isMachineOpcode();
+
+      if (N->isMachineOpcode())
+        errs() << " opcode=" << N->getMachineOpcode();
+      else
+        errs() << " opcode=" << N->getOpcode();
+    }
+  }
+
+  errs() << " kind=" << static_cast<unsigned>(Dep.getKind())
+         << " latency=" << Dep.getLatency() << '\n';
+}
+  // Only modify true register data dependencies of native SIMD multiplies.
+  // Never touch order/memory/anti/output edges or scalar instructions.
+  if (!BPFSIMDMulDepLatency || Dep.getKind() != SDep::Data || !Def )
+    return;
+
+  unsigned Opcode;
+
+  if (Def->isInstr() && Def->getInstr()) {
+      Opcode = Def->getInstr()->getOpcode();
+  } else if (!Def->isInstr() && Def->getNode() &&
+               Def->getNode()->isMachineOpcode()) {
+      Opcode = Def->getNode()->getMachineOpcode();
+  } else {
+      return;
+    }
+
+  if (Opcode != BPF::SIMD_MUL3 && Opcode != BPF::SIMD_MUL)
+    return;
+
+  // This is a scheduling hint, not an inserted delay. Preserve any stronger
+  // latency supplied by a future scheduling model.
+  const unsigned OldLatency = Dep.getLatency();
+  if (BPFSIMDMulDepLatency > OldLatency)
+    Dep.setLatency(BPFSIMDMulDepLatency);
+
+  if (BPFSIMDMulDepTrace)
+    errs() << "BPF_SIMD_MUL_EDGE opcode="
+           << (Opcode == BPF::SIMD_MUL3 ? "SIMD_MUL3" : "SIMD_MUL")
+           << " latency=" << OldLatency << "->" << Dep.getLatency()
+           << '\n';
+}
 
 void BPFSubtarget::anchor() {}
 
